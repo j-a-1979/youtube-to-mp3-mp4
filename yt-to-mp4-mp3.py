@@ -1,223 +1,180 @@
 import tkinter as tk
 from tkinter import messagebox
+from tkinter import filedialog
+import os
+import subprocess
 from pytubefix import YouTube
 from pytubefix import Playlist
 from pytubefix.cli import on_progress
 
-
+def output_folder():
+    folder_selected = filedialog.askdirectory(title="Select Download Folder")
+    if folder_selected:
+        os.chdir(folder_selected)
+        folder_label.config(text='folder: ' + folder_selected)
 
 
 def download():
+
     video_url = url_link.get()
     
+    if not video_url:
+        messagebox.showerror('Error', 'Please enter a URL.')
+        return
+
+    try:
+        yt = YouTube(video_url, on_progress_callback=on_progress)
+        print(f"Downloading MP4: {yt.title}")
+        
+        ys = yt.streams.get_highest_resolution()
+        ys.download(output_path=os.getcwd())
+        
+        success = tk.Label(window, fg='WHITE', bg='BLACK', text='DOWNLOAD COMPLETED SUCCESSFULLY!')
+        success.pack()
+        print("\nDownload completed successfully!")
+    
+    except Exception as e:
+        messagebox.showerror('Error', f'An error occurred: {e}')
+        print(f"An error occurred: {e}")
+
+def mp3():
+    video_url = url_link.get()
 
     if not video_url:
         messagebox.showerror('Error', 'Please enter a URL.')
         return
 
     try:
-        
         yt = YouTube(video_url, on_progress_callback=on_progress)
-               
-        print(f"Downloading: {yt.title}")
+        print(f"Downloading Audio: {yt.title}")
         
-        # Get the highest resolution progressive stream (contains both audio and video)
-        ys = yt.streams.get_highest_resolution()
-        
-        # Download the video to the current working directory
-        ys.download()
-        success = tk.Label(window, fg='BLACK' ,text='DOWNLOAD COMPLETED SUCCESSFULLY!')
-        success.pack()
-        print("\nDownload completed successfully!")
-    
-    except Exception as e:
-        messagebox.showerror('Error','An error ocurred please enter a valid URL.' )
-        print(f"An error occurred: {e}")
-
-def mp3():
-
-    video_url = url_link.get()
-
-    try:
-        
-        yt = YouTube(video_url, on_progress_callback=on_progress)
-               
-        print(f"Downloading: {yt.title}")
-        
-        # Get the highest resolution progressive stream (contains both audio and video)
         ys = yt.streams.get_audio_only()
+        out_file = ys.download(output_path=os.getcwd())
         
-        # Download the video to the current working directory
-        ys.download()
+        # Get the file names ready
+        base, ext = os.path.splitext(out_file)
+        new_file = base + '.mp3'
+        
+        print(f"Converting to REAL MP3: {new_file}")
+        
 
-        messagebox.showinfo('Awesome!', 'Download completed successfully!')
-        print("\nDownload completed successfully!")
+        subprocess.run(['ffmpeg', '-i', out_file, '-vn', '-b:a', '320k', new_file], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        
+
+        os.remove(out_file)
+
+        messagebox.showinfo('Awesome!', 'Download and conversion completed successfully!')
+        print("\nConversion completed successfully!")
 
     except Exception as e:
-
-        messagebox.showerror('Error', 'An error ocurred please enter a valid URL.' )
+        messagebox.showerror('Error', f'An error occurred: {e}')
         print(f"An error occurred: {e}")        
 
-
-
-
-
-
-
-
-
-
-
-
-
 def playlist_download():
-    # Hide the main window
     window.withdraw()
-    
-    # Create the second window
+
     second_window = tk.Toplevel()
     second_window.title("mp4tool")
     second_window.geometry('600x500')
     second_window.resizable(False, False)
     second_window.configure(bg='BLACK')
     
-
     def playlist():
-
-        video_url = url_link.get()
-
-        if not video_url:
-            messagebox.showerror('Error', 'Please enter a playlist URL.')
+        url = url_link2.get()
+        if not url:
+            messagebox.showerror('Error', 'Please enter a URL.')
             return
 
         try:
-            pl = Playlist(video_url)
-            video_urls = list(pl.video_urls) if hasattr(pl, 'video_urls') else [video.watch_url for video in pl.videos]
+            pl = Playlist(url)
+            print(f'Downloading MP4 playlist: {pl.title}')
 
-            if not video_urls:
-                raise ValueError('No videos found in playlist.')
+            for video in pl.videos:
+                try:
+                    ys = video.streams.get_highest_resolution()
+                    ys.download(output_path=os.getcwd())
+                    print(f"Success: {video.title}")
+                except Exception as ve:
+                    print(f"Skipped video due to error: {ve}")
 
-            for index, item_url in enumerate(video_urls, start=1):
-                yt = YouTube(item_url, on_progress_callback=on_progress)
-                print(f"Downloading [{index}/{len(video_urls)}]: {yt.title}")
-                ys = yt.streams.get_highest_resolution()
-                ys.download()
+            success = tk.Label(second_window, fg='WHITE', bg='BLACK', text='DOWNLOAD COMPLETED SUCCESSFULLY!')
+            success.pack()
+            print("\nPlaylist download completed!")
+            
+        except Exception as pe:
+            messagebox.showerror('Error', f'Playlist error: {pe}')
 
-            success = tk.Label(second_window, fg='BLACK', text='PLAYLIST DOWNLOAD COMPLETED SUCCESSFULLY!')
-            success.pack(pady=5)
-            messagebox.showinfo('Awesome!', 'Playlist download completed successfully!')
-            print("\nPlaylist download completed successfully!")
-
-        except Exception as e:
-            messagebox.showerror('Error', 'An error occurred while downloading the playlist. Please enter a valid URL.')
-            print(f"An error occurred: {e}")
-
-    def playlist_mp3():
-
-        video_url = url_link.get()
-
-        if not video_url:
-            messagebox.showerror('Error', 'Please enter a playlist URL.')
+    def mp3_playlist():
+        url = url_link2.get()
+        if not url:
+            messagebox.showerror('Error', 'Please enter a URL.')
             return
 
         try:
-            pl = Playlist(video_url)
-            video_urls = list(pl.video_urls) if hasattr(pl, 'video_urls') else [video.watch_url for video in pl.videos]
+            pl = Playlist(url)
+            print(f'Downloading and converting MP3 playlist: {pl.title}')
 
-            if not video_urls:
-                raise ValueError('No videos found in playlist.')
+            for video in pl.videos:
+                try:
+                    ys = video.streams.get_audio_only()
+                    out_file = ys.download(output_path=os.getcwd())
+                    
+                    base, ext = os.path.splitext(out_file)
+                    new_file = base + '.mp3'
+                    
+                    print(f"Converting: {video.title}")
+                    
+                    subprocess.run(['ffmpeg', '-i', out_file, '-vn', '-b:a', '320k', new_file], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+                    
 
-            for index, item_url in enumerate(video_urls, start=1):
-                yt = YouTube(item_url, on_progress_callback=on_progress)
-                print(f"Downloading audio [{index}/{len(video_urls)}]: {yt.title}")
-                ys = yt.streams.get_audio_only()
-                ys.download()
+                    os.remove(out_file)
+                    
+                    print(f"Success REAL MP3: {video.title}")
+                except Exception as ve:
+                    print(f"Skipped video due to error: {ve}")
 
-            success = tk.Label(second_window, fg='BLACK', text='PLAYLIST MP3 DOWNLOAD COMPLETED SUCCESSFULLY!')
-            success.pack(pady=5)
-            messagebox.showinfo('Awesome!', 'Playlist MP3 download completed successfully!')
-            print("\nPlaylist MP3 download completed successfully!")
-
-        except Exception as e:
-            messagebox.showerror('Error', 'An error occurred while downloading the playlist audio. Please enter a valid URL.')
-            print(f"An error occurred: {e}")
-
+            success = tk.Label(second_window, fg='WHITE', bg='BLACK', text='DOWNLOAD COMPLETED SUCCESSFULLY!')
+            success.pack()
+            print("\nPlaylist conversion completed!")
+            
+        except Exception as pe:
+            messagebox.showerror('Error', f'Playlist error: {pe}')
 
     enter_url = tk.Label(second_window, bg='BLACK', fg='WHITE', text='ENTER YOUR URL: ', font='Helvetica')
     enter_url.pack(pady=20)
 
-    url_link = tk.Entry(second_window, bg='GRAY', fg='BLACK', width=44)
-    url_link.pack(pady=10)
+    url_link2 = tk.Entry(second_window, bg='GRAY', fg='BLACK', width=44)
+    url_link2.pack(pady=10)
 
     download_btn = tk.Button(second_window, bg='BLACK', fg='WHITE', text='DOWNLOAD MP4', command=playlist)
     download_btn.pack(pady=10)
 
-    mp3_btn = tk.Button(second_window, bg='BLACK', fg='WHITE', text='DOWNLOAD MP3', command=playlist_mp3)
+    mp3_btn = tk.Button(second_window, bg='BLACK', fg='WHITE', text='DOWNLOAD MP3', command=mp3_playlist)
     mp3_btn.pack(pady=10)
 
-
-
-
-
-
-
-
-    # Function to go back to the main menu
     def go_back():
         second_window.destroy()
-        window.deiconify() # Restore the main window
+        window.deiconify() 
         
-    # Placeholder label for the second menu
     menu2_label = tk.Label(second_window, bg='BLACK', fg='WHITE', text='playlist downloader', font='Helvetica')
     menu2_label.pack(pady=20)
     
-    # Button to go back
     back_btn = tk.Button(second_window, bg='BLACK', fg='WHITE', text='download mp3/mp4', command=go_back)
     back_btn.pack(pady=10)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# --- MAIN WINDOW ---
 window = tk.Tk()
 window.title("mp4tool")
 window.geometry('600x500')
 window.resizable(False, False)
 window.configure(bg='BLACK')
+
+btn_folder = tk.Button(window, bg='BLACK', fg='WHITE', text='Select Download Folder', command=output_folder)
+btn_folder.pack(pady=10)
+
+folder_label = tk.Label(window, bg='BLACK', fg='WHITE', text='folder: ' + os.getcwd(), font='Helvetica')
+folder_label.pack(pady=10)
+
 
 enter_url = tk.Label(window, bg='BLACK', fg='WHITE', text='ENTER YOUR URL: ', font='Helvetica')
 enter_url.pack(pady=20)
@@ -231,7 +188,6 @@ download_btn.pack(pady=10)
 mp3_btn = tk.Button(window, bg='BLACK', fg='WHITE', text='DOWNLOAD MP3', command=mp3)
 mp3_btn.pack(pady=10)
 
-# NEW BUTTON TO NAVIGATE TO SECOND MENU
 next_menu_btn = tk.Button(window, bg='BLACK', fg='WHITE', text='playlist downloader', command=playlist_download)
 next_menu_btn.pack(pady=10)
 
