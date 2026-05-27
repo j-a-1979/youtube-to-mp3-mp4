@@ -1,4 +1,4 @@
-import tkinter as tk
+import tkinter
 from tkinter import messagebox
 from tkinter import filedialog
 import os
@@ -6,6 +6,7 @@ import subprocess
 from pytubefix import YouTube
 from pytubefix import Playlist
 from pytubefix.cli import on_progress
+import customtkinter as ctk
 
 def output_folder():
     folder_selected = filedialog.askdirectory(title="Select Download Folder")
@@ -29,7 +30,7 @@ def download():
         ys = yt.streams.get_highest_resolution()
         ys.download(output_path=os.getcwd())
         
-        success = tk.Label(window, fg='WHITE', bg='BLACK', text='DOWNLOAD COMPLETED SUCCESSFULLY!')
+        success = ctk.CTkLabel(window, fg_color='black', text='DOWNLOAD COMPLETED SUCCESSFULLY!')
         success.pack()
         print("\nDownload completed successfully!")
     
@@ -73,7 +74,7 @@ def mp3():
 def playlist_download():
     window.withdraw()
 
-    second_window = tk.Toplevel()
+    second_window = ctk.CTkToplevel()
     second_window.title("mp4tool")
     second_window.geometry('600x500')
     second_window.resizable(False, False)
@@ -97,7 +98,7 @@ def playlist_download():
                 except Exception as ve:
                     print(f"Skipped video due to error: {ve}")
 
-            success = tk.Label(second_window, fg='WHITE', bg='BLACK', text='DOWNLOAD COMPLETED SUCCESSFULLY!')
+            success = ctk.CTkLabel(second_window, fg_color='black', text='DOWNLOAD COMPLETED SUCCESSFULLY!')
             success.pack()
             print("\nPlaylist download completed!")
             
@@ -133,62 +134,62 @@ def playlist_download():
                 except Exception as ve:
                     print(f"Skipped video due to error: {ve}")
 
-            success = tk.Label(second_window, fg='WHITE', bg='BLACK', text='DOWNLOAD COMPLETED SUCCESSFULLY!')
+            success = ctk.CTkLabel(second_window, fg_color='black', text='DOWNLOAD COMPLETED SUCCESSFULLY!')
             success.pack()
             print("\nPlaylist conversion completed!")
             
         except Exception as pe:
             messagebox.showerror('Error', f'Playlist error: {pe}')
 
-    enter_url = tk.Label(second_window, bg='BLACK', fg='WHITE', text='ENTER YOUR URL: ', font='Helvetica')
+    enter_url = ctk.CTkLabel(second_window, text='ENTER YOUR URL: ', font=('Helvetica', 14))
     enter_url.pack(pady=20)
 
-    url_link2 = tk.Entry(second_window, bg='GRAY', fg='BLACK', width=44)
+    url_link2 = ctk.CTkEntry(second_window, width=440)
     url_link2.pack(pady=10)
 
-    download_btn = tk.Button(second_window, bg='BLACK', fg='WHITE', text='DOWNLOAD MP4', command=playlist)
+    download_btn = ctk.CTkButton(second_window, text='DOWNLOAD MP4', command=playlist)
     download_btn.pack(pady=10)
 
-    mp3_btn = tk.Button(second_window, bg='BLACK', fg='WHITE', text='DOWNLOAD MP3', command=mp3_playlist)
+    mp3_btn = ctk.CTkButton(second_window, text='DOWNLOAD MP3', command=mp3_playlist)
     mp3_btn.pack(pady=10)
 
     def go_back():
         second_window.destroy()
         window.deiconify() 
         
-    menu2_label = tk.Label(second_window, bg='BLACK', fg='WHITE', text='playlist downloader', font='Helvetica')
+    menu2_label = ctk.CTkLabel(second_window, text='playlist downloader', font=('Helvetica', 14))
     menu2_label.pack(pady=20)
     
-    back_btn = tk.Button(second_window, bg='BLACK', fg='WHITE', text='download mp3/mp4', command=go_back)
+    back_btn = ctk.CTkButton(second_window, text='download mp3/mp4', command=go_back)
     back_btn.pack(pady=10)
 
 # --- MAIN WINDOW ---
-window = tk.Tk()
+window = ctk.CTk()
 window.title("mp4tool")
 window.geometry('600x500')
 window.resizable(False, False)
 window.configure(bg='BLACK')
 
-btn_folder = tk.Button(window, bg='BLACK', fg='WHITE', text='Select Download Folder', command=output_folder)
+btn_folder = ctk.CTkButton(window, text='Select Download Folder', command=output_folder)
 btn_folder.pack(pady=10)
 
-folder_label = tk.Label(window, bg='BLACK', fg='WHITE', text='folder: ' + os.getcwd(), font='Helvetica')
+folder_label = ctk.CTkLabel(window, text='folder: ' + os.getcwd(), font=('Helvetica', 14))
 folder_label.pack(pady=10)
 
 
-enter_url = tk.Label(window, bg='BLACK', fg='WHITE', text='ENTER YOUR URL: ', font='Helvetica')
+enter_url = ctk.CTkLabel(window, text='ENTER YOUR URL: ', font=('Helvetica', 14))
 enter_url.pack(pady=20)
 
-url_link = tk.Entry(window, bg='GRAY', fg='BLACK', width=44)
+url_link = ctk.CTkEntry(window, width=440)
 url_link.pack(pady=10)
 
-download_btn = tk.Button(window, bg='BLACK', fg='WHITE', text='DOWNLOAD MP4', command=download)
+download_btn = ctk.CTkButton(window, text='DOWNLOAD MP4', command=download)
 download_btn.pack(pady=10)
 
-mp3_btn = tk.Button(window, bg='BLACK', fg='WHITE', text='DOWNLOAD MP3', command=mp3)
+mp3_btn = ctk.CTkButton(window, text='DOWNLOAD MP3', command=mp3)
 mp3_btn.pack(pady=10)
 
-next_menu_btn = tk.Button(window, bg='BLACK', fg='WHITE', text='playlist downloader', command=playlist_download)
+next_menu_btn = ctk.CTkButton(window, text='playlist downloader', command=playlist_download)
 next_menu_btn.pack(pady=10)
 
 window.mainloop()
