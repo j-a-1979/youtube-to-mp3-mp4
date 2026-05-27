@@ -1,6 +1,4 @@
-import tkinter
 from tkinter import messagebox
-from tkinter import filedialog
 import os
 import subprocess
 from pytubefix import YouTube
@@ -9,7 +7,7 @@ from pytubefix.cli import on_progress
 import customtkinter as ctk
 
 def output_folder():
-    folder_selected = filedialog.askdirectory(title="Select Download Folder")
+    folder_selected = ctk.filedialog.askdirectory(title="Select Download Folder")
     if folder_selected:
         os.chdir(folder_selected)
         folder_label.config(text='folder: ' + folder_selected)
@@ -142,7 +140,7 @@ def playlist_download():
             messagebox.showerror('Error', f'Playlist error: {pe}')
 
     enter_url = ctk.CTkLabel(second_window, text='ENTER YOUR URL: ', font=('Helvetica', 14))
-    enter_url.pack(pady=20)
+    enter_url.pack(pady=0)
 
     url_link2 = ctk.CTkEntry(second_window, width=440)
     url_link2.pack(pady=10)
@@ -165,7 +163,7 @@ def playlist_download():
 
 # --- MAIN WINDOW ---
 window = ctk.CTk()
-window.title("mp4tool")
+window.title("m")
 window.geometry('600x500')
 window.resizable(False, False)
 window.configure(bg='BLACK')
